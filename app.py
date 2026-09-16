@@ -457,7 +457,7 @@ def client_delete(id):
         conn.close()
         flash('This client has jobs on record and cannot be deleted. Delete their jobs first.', 'error')
         return redirect(url_for('clients_list'))
-    conn.execute("DELETE FROM clients WHERE id = ?", (id,))
+    cursor = conn.execute("DELETE FROM clients WHERE id = ?", (id,))
     conn.commit()
     conn.close()
     if cursor.rowcount == 0:
@@ -528,7 +528,7 @@ def service_edit(id):
 @app.route("/services/<int:id>/delete", methods=["POST"])
 def service_delete(id):
     conn = get_db_connection()
-    conn.execute("UPDATE services SET is_active = 0 WHERE id = ?", (id,))
+    cursor = conn.execute("UPDATE services SET is_active = 0 WHERE id = ?", (id,))
     conn.commit()
     conn.close()
     flash("Service deleted!" if cursor.rowcount else "Service not found.", "success" if cursor.rowcount else "error")
@@ -668,7 +668,7 @@ def job_delete(id):
         conn.close()
         flash('This job has invoices linked to it and cannot be deleted.', 'error')
         return redirect(url_for('jobs_list'))
-    conn.execute("DELETE FROM jobs WHERE id = ?", (id,))
+    cursor = conn.execute("DELETE FROM jobs WHERE id = ?", (id,))
     conn.commit()
     conn.close()
     flash("Job deleted!" if cursor.rowcount else "Job not found.", "success" if cursor.rowcount else "error")
