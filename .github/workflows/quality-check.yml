@@ -34,7 +34,14 @@ jobs:
           import app
 
           client = app.app.test_client()
-          routes = [
+
+          # Public routes must be accessible without authentication.
+          for path in ["/login", "/setup"]:
+              response = client.get(path)
+              assert response.status_code == 200, f"{path}: {response.status_code}"
+
+          # Business routes must redirect unauthenticated users to login.
+          protected_routes = [
               "/",
               "/clients",
               "/services",
@@ -46,10 +53,12 @@ jobs:
               "/api/client/999999/jobs",
           ]
 
-          for path in routes:
+          for path in protected_routes:
               response = client.get(path)
-              assert response.status_code in (200, 404), f"{path}: {response.status_code}"
+              assert response.status_code == 302, f"{path}: {response.status_code}"
+              assert "/login" in response.headers.get("Location", ""), f"{path}: missing login redirect"
 
+          # Unknown routes must return 404.
           response = client.get("/definitely-not-a-real-wems-route")
           assert response.status_code == 404, response.status_code
 
