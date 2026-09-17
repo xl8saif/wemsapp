@@ -4,7 +4,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.environ.get("WEMS_DATA_DIR") or BASE_DIR
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'waraq-secret-key-2024'
+    # Production must provide a strong secret through the environment.
+    WEMS_ENV = os.environ.get("WEMS_ENV", "development").lower()
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+
+    if WEMS_ENV in {"production", "prod"} and not SECRET_KEY:
+        raise RuntimeError("SECRET_KEY environment variable is required in production.")
+
+    # Development/CI fallback only; never use this value in production.
+    SECRET_KEY = SECRET_KEY or "dev-only-insecure-key-change-me"
     DATABASE = os.path.join(DATA_DIR, 'database', 'waraq.db')
     INVOICE_DIR = os.path.join(DATA_DIR, 'invoices')
     EXPORT_DIR = os.path.join(DATA_DIR, 'exports')
