@@ -13,7 +13,8 @@ class Config:
 
     # Development/CI fallback only; never use this value in production.
     SECRET_KEY = SECRET_KEY or "dev-only-insecure-key-change-me"
-    DATABASE = os.path.join(DATA_DIR, 'database', 'waraq.db')
+    DATABASE_URL = os.environ.get("DATABASE_URL", "").strip() or None
+    DATABASE = os.path.join(DATA_DIR, "database", "waraq.db")
     INVOICE_DIR = os.path.join(DATA_DIR, 'invoices')
     EXPORT_DIR = os.path.join(DATA_DIR, 'exports')
     BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
@@ -34,6 +35,11 @@ class Config:
     # Business settings
     CURRENCY = "PKR"
     TAX_RATE = 0.0
+
+    # Secure session defaults for the online deployment.
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = WEMS_ENV in {"production", "prod"}
 
     # Legacy shared password — retired by the multi-user login system.
     # Kept for compatibility; set the WEMS_PASSWORD environment variable to provide it.
