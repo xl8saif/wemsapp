@@ -5,12 +5,12 @@ import shutil
 import glob as globmod
 import hmac
 from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
 from functools import wraps
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, make_response, session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-import sqlite3
 from xhtml2pdf import pisa
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -26,6 +26,8 @@ from database.db import (
     get_outstanding_clients,
     get_setting,
     set_setting,
+    DBIntegrityError,
+    get_db_backend,
 )
 
 app = Flask(__name__)
@@ -96,7 +98,9 @@ def safe_prune_backups(keep=30):
         pass
 
 def auto_backup():
-    """Back up the database once per day and prune old backups."""
+    """Back up SQLite locally; PostgreSQL is backed up by the database provider."""
+    if get_db_backend() != "sqlite":
+        return
     try:
         stamp = datetime.now().strftime('%Y%m%d')
         marker = os.path.join(Config.BACKUP_DIR, f'.autobackup_{stamp}')
@@ -181,7 +185,7 @@ def setup():
                 (username, generate_password_hash(password), full_name),
             )
             conn.commit()
-        except sqlite3.IntegrityError:
+        except DBIntegrityError:
             conn.close()
             flash('یہ صارف نام پہلے سے موجود ہے۔ Username already exists.', 'error')
             return redirect(url_for('setup'))
@@ -457,7 +461,7 @@ def client_delete(id):
         conn.close()
         flash('This client has jobs on record and cannot be deleted. Delete their jobs first.', 'error')
         return redirect(url_for('clients_list'))
-    conn.execute("DELETE FROM clients WHERE id = ?", (id,))
+    cursor = conn.execute("DELETE FROM clients WHERE id = ?", (id,))
     conn.commit()
     conn.close()
     if cursor.rowcount == 0:
@@ -528,7 +532,7 @@ def service_edit(id):
 @app.route("/services/<int:id>/delete", methods=["POST"])
 def service_delete(id):
     conn = get_db_connection()
-    conn.execute("UPDATE services SET is_active = 0 WHERE id = ?", (id,))
+    cursor = conn.execute("UPDATE services SET is_active = 0 WHERE id = ?", (id,))
     conn.commit()
     conn.close()
     flash("Service deleted!" if cursor.rowcount else "Service not found.", "success" if cursor.rowcount else "error")
@@ -668,7 +672,7 @@ def job_delete(id):
         conn.close()
         flash('This job has invoices linked to it and cannot be deleted.', 'error')
         return redirect(url_for('jobs_list'))
-    conn.execute("DELETE FROM jobs WHERE id = ?", (id,))
+    cursor = conn.execute("DELETE FROM jobs WHERE id = ?", (id,))
     conn.commit()
     conn.close()
     flash("Job deleted!" if cursor.rowcount else "Job not found.", "success" if cursor.rowcount else "error")
@@ -1387,6 +1391,9 @@ def profile_cv():
 
 @app.route('/backup')
 def backup():
+    if get_db_backend() != 'sqlite':
+        flash('PostgreSQL backups are managed outside the web application. Use the database provider backup/export process.', 'error')
+        return redirect(url_for('dashboard'))
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     backup_path = os.path.join(Config.BACKUP_DIR, f'waraq_backup_{timestamp}.db')
     shutil.copy2(Config.DATABASE, backup_path)
