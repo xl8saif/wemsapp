@@ -189,6 +189,10 @@
     'پہلا ایڈمین اکاؤنٹ بنائیں': 'Create the First Admin Account',
     'ایکاؤنٹ بنائیں': 'Create Account',
     'مینو بند کریں': 'Close menu',
+    'ہٹانا ہے؟ Remove this post?': 'Remove this post?',
+    'ہٹائیں / Remove': 'Remove',
+    'ابھی کوئی پوسٹ پن نہیں کی گئی۔': 'No posts pinned yet.',
+    'ہٹانا ہے؟': 'Remove?',
     'مینو کھولیں': 'Open menu',
   };
 
