@@ -31,8 +31,8 @@ jobs:
           $p = Start-Process -FilePath "dist\WEMS\WEMS.exe" -PassThru
           Start-Sleep -Seconds 4
           try {
-            $r = Invoke-WebRequest -Uri "http://127.0.0.1:5000/" -UseBasicParsing -TimeoutSec 10
-            if ($r.StatusCode -ne 200) { throw "WEMS returned HTTP $($r.StatusCode)" }
+            $r = Invoke-WebRequest -Uri "http://127.0.0.1:5000/healthz" -UseBasicParsing -TimeoutSec 10
+            if ($r.StatusCode -ne 200 -or $r.Content -notmatch '"status"\s*:\s*"ok"') { throw "WEMS health check failed: HTTP $($r.StatusCode)" }
           }
           finally {
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
