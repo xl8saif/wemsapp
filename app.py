@@ -124,7 +124,7 @@ auto_backup()
 
 @app.before_request
 def require_login():
-    allowed = ('login', 'setup', 'static')
+    allowed = ('login', 'setup', 'static', 'healthz')
     if request.endpoint in allowed:
         return None
     if not session.get('user_id'):
