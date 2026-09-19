@@ -2,20 +2,9 @@
 {% block title %}صارفین — WEMS{% endblock %}
 {% block page_title %}صارفین{% endblock %}
 {% block content %}
-<div class="page-actions">
-    <div class="card add-user-card">
-        <h3 class="section-title"><i class="fas fa-user-plus"></i> نیا صارف شامل کریں</h3>
-        <form method="post" action="{{ url_for('users_add') }}" class="add-user-form">
-            <input class="form-input" name="full_name" placeholder="پورا نام *" required>
-            <input class="form-input" name="username" placeholder="صارف نام *" required autocomplete="off">
-            <input class="form-input" type="password" name="password" placeholder="پاس ورڈ (کم از کم 6) *" required autocomplete="new-password">
-            <select class="form-select" name="role">
-                <option value="staff">عملہ</option>
-                <option value="admin">ایڈمین</option>
-            </select>
-            <button type="submit" class="btn btn-primary">شامل کریں</button>
-        </form>
-    </div>
+<div class="card hint-card" style="margin-bottom:18px;">
+    <p class="muted">WEMS آن لائن ورژن صرف ایک ایڈمن اکاؤنٹ استعمال کرتا ہے۔ نئے صارف اکاؤنٹس اور عوامی رجسٹریشن بند ہیں۔</p>
+</div>
 </div>
 
 <div class="card">
@@ -34,17 +23,10 @@
                     <td>{% if u['has_profile'] %}<a href="{{ url_for('user_profile_by_id', uid=u['id']) }}">دیکھیں</a>{% else %}<span class="muted">—</span>{% endif %}</td>
                     <td class="row-actions">
                         <form method="post" action="{{ url_for('users_reset_password', uid=u['id']) }}" class="inline-form">
-                            <input class="form-input" type="password" name="password" placeholder="نیا پاس ورڈ" required autocomplete="new-password" minlength="6">
-                            <button type="submit" class="btn btn-outline btn-sm">پاس ورڈ ری سیٹ</button>
+                            <input class="form-input" type="password" name="password" placeholder="نیا پاس ورڈ (12+)" required autocomplete="new-password" minlength="12">
+                            <button type="submit" class="btn btn-outline btn-sm">پاس ورڈ تبدیل کریں</button>
                         </form>
-                        {% if current_user and u['id'] != current_user['id'] %}
-                        <form method="post" action="{{ url_for('users_toggle', uid=u['id']) }}" class="inline-form">
-                            <button type="submit" class="btn btn-outline btn-sm">{% if u['is_active'] %}بند کریں{% else %}چالو کریں{% endif %}</button>
-                        </form>
-                        <form method="post" action="{{ url_for('users_delete', uid=u['id']) }}" class="inline-form" onsubmit="return confirm('کیا واقعی اس صارف کو حذف کرنا ہے؟');">
-                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                        </form>
-                        {% endif %}
+
                     </td>
                 </tr>
             {% endfor %}
