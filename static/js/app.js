@@ -6,7 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function syncSidebar(open) {
         if (!sidebar) return;
         sidebar.classList.toggle('open', open);
-        if (sidebarToggle) sidebarToggle.setAttribute('aria-label', open ? 'مینو بند کریں' : 'مینو کھولیں');
+        if (sidebarToggle) const isEnglish = document.documentElement.lang === 'en';
+        sidebarToggle.setAttribute('aria-label', isEnglish
+            ? (open ? 'Close menu' : 'Open menu')
+            : (open ? 'مینو بند کریں' : 'مینو کھولیں'));
     }
 
     if (sidebarToggle) {
