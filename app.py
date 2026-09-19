@@ -77,7 +77,7 @@ def _ensure_urdu_pdf_font():
         pass  # PDF still generates with the fallback font
 
 # Ensure directories exist
-for directory in [Config.INVOICE_DIR, Config.EXPORT_DIR, Config.BACKUP_DIR, Config.STATIC_IMAGE_DIR]:
+for directory in [Config.INVOICE_DIR, Config.EXPORT_DIR, Config.BACKUP_DIR, Config.STATIC_IMAGE_DIR, Config.PROFILE_UPLOAD_DIR, Config.PROFILE_CV_DIR]:
     os.makedirs(directory, exist_ok=True)
 
 # ==================== AUTHENTICATION ====================
@@ -1266,8 +1266,8 @@ def change_password():
 
 # ==================== USER PROFILE (per user) ====================
 
-PROFILE_UPLOAD_DIR = Config.STATIC_IMAGE_DIR  # profile photos live with brand images
-PROFILE_CV_DIR = os.path.join(os.path.dirname(Config.STATIC_IMAGE_DIR), os.pardir, 'uploads')  # <app>/uploads
+PROFILE_UPLOAD_DIR = Config.PROFILE_UPLOAD_DIR
+PROFILE_CV_DIR = Config.PROFILE_CV_DIR
 
 SKILL_OPTIONS = {
     'Languages': [
@@ -1337,6 +1337,15 @@ def user_profile_by_id(uid):
     return render_template('profile.html', profile=profile, user=target, skills=skills, socials=socials, skill_options=SKILL_OPTIONS)
 
 
+@app.route('/profile/photo/<path:filename>')
+def profile_photo(filename):
+    """Serve a user's uploaded profile photo from persistent application storage."""
+    user = _current_user()
+    if not user:
+        return redirect(url_for('login'))
+    return send_file(os.path.join(PROFILE_UPLOAD_DIR, secure_filename(filename)))
+
+
 @app.route('/profile/edit', methods=['GET', 'POST'])
 def profile_edit():
     user = _current_user()
@@ -1365,7 +1374,7 @@ def profile_edit():
             if ext not in ('.png', '.jpg', '.jpeg', '.webp'):
                 flash('Only image files (PNG, JPG, WEBP) are allowed for the photo.', 'error')
                 return redirect(url_for('profile_edit'))
-            photo_name = f'profile-photo{ext}'
+            photo_name = f"profile-photo-{user['id']}{ext}"
             photo.save(os.path.join(PROFILE_UPLOAD_DIR, photo_name))
 
         cv_name = None
@@ -1375,7 +1384,7 @@ def profile_edit():
                 flash('Only PDF or Word documents are allowed for the CV.', 'error')
                 return redirect(url_for('profile_edit'))
             os.makedirs(PROFILE_CV_DIR, exist_ok=True)
-            cv_name = secure_filename(cv.filename)
+            cv_name = f"user-{user['id']}-{secure_filename(cv.filename)}"
             cv.save(os.path.join(PROFILE_CV_DIR, cv_name))
 
         conn = get_db_connection()
