@@ -129,7 +129,7 @@
     'اس کلائنٹ کے انوائسز موجود ہیں، اس لیے حذف نہیں کیا جا سکتا۔ پہلے ان کے انوائسز حذف یا دوبارہ منتقل کریں۔': 'This client has invoices and cannot be deleted. Delete or reassign their invoices first.',
     'اس کلائنٹ کے کام موجود ہیں، اس لیے حذف نہیں کیا جا سکتا۔ پہلے اس کے کام حذف کریں۔': 'This client has jobs and cannot be deleted. Delete their jobs first.',
     'اس کام کی انوائسز منسلک ہیں، اس لیے حذف نہیں کیا جا سکتا۔': 'This job has invoices linked to it and cannot be deleted.',
-    'اس انوائس کے خلاف ادائیگیاں درج ہیں، اس لیے حذف نہیں کی جا سکتی۔ پہلے ادائیگیاں حذف کریں۔': 'This invoice has payments recorded and cannot be deleted. Delete its payments first.'
+    'اس انوائس کے خلاف ادائیگیاں درج ہیں، اس لیے حذف نہیں کی جا سکتی۔ پہلے ادائیگیاں حذف کریں۔': 'This invoice has payments recorded and cannot be deleted. Delete its payments first.',
     'لاگ ان — WEMS': 'Login — WEMS',
     'ورق انٹرپرائزز، گلگت کا منصوبہ': 'A project of Waraq Enterprises, Gilgit',
     'محفوظ دفتری نظام — صارف نام اور پاس ورڈ درج کریں': 'Secure office system — enter your username and password',
