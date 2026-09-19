@@ -3,7 +3,7 @@
 PythonAnywhere setup (Web tab -> WSGI configuration file):
 
     import sys
-    path = '/home/YOURUSERNAME/WEMS'   # your clone location
+    path = '/home/YOURUSERNAME/wemsapp'   # your clone location
     if path not in sys.path:
         sys.path.insert(0, path)
 
