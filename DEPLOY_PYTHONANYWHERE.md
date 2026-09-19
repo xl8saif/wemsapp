@@ -1,10 +1,10 @@
 # Deploying WEMS online on PythonAnywhere
 
-WEMS supports a normal Flask/WSGI deployment with PostgreSQL. PythonAnywhere documents manual Flask deployments through a WSGI entry point; do not run Flask's development server on the hosted site. citeturn0search3
+WEMS supports a normal Flask/WSGI deployment with PostgreSQL. PythonAnywhere documents manual Flask deployments through a WSGI entry point; do not run Flask's development server on the hosted site.
 
 ## 1. Provision PostgreSQL
 
-PythonAnywhere-hosted PostgreSQL requires a paid account. A paid PythonAnywhere account can also connect to an external PostgreSQL service. citeturn1view0
+PythonAnywhere-hosted PostgreSQL requires a paid account. A paid PythonAnywhere account can also connect to an external PostgreSQL service.
 
 Create a dedicated PostgreSQL database and application user. Keep the database credentials private.
 
@@ -24,7 +24,7 @@ mkvirtualenv wems-env --python=$(which python3.12)
 pip install -r ~/wemsapp/requirements.txt
 ```
 
-Psycopg 3 currently supports Python 3.10–3.15 and provides binary wheels, so it is suitable for the project's current Python range. citeturn0search5
+Psycopg 3 currently supports Python 3.10–3.15 and provides binary wheels, so it is suitable for the project's current Python range.
 
 ## 4. Migrate the office SQLite database
 
@@ -71,7 +71,7 @@ if path not in sys.path:
 from wsgi import application
 ```
 
-PythonAnywhere's standard Flask deployment uses the WSGI configuration and does not require `app.run()`; WEMS keeps `app.run()` behind the normal Python main guard for local Windows use. citeturn0search3turn0search11
+PythonAnywhere's standard Flask deployment uses the WSGI configuration and does not require `app.run()`; WEMS keeps `app.run()` behind the normal Python main guard for local Windows use.
 
 ## 7. Static files
 
