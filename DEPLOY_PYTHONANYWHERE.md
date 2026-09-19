@@ -11,7 +11,7 @@ Create a dedicated PostgreSQL database and application user. Keep the database c
 ## 2. Clone WEMS
 
 ```bash
-git clone -b online-migration https://github.com/xl8saif/wemsapp.git ~/wemsapp
+git clone https://github.com/xl8saif/wemsapp.git ~/wemsapp
 cd ~/wemsapp
 ```
 
@@ -96,7 +96,7 @@ If this is a new database, visit `/setup` immediately and create the first admin
 
 ```bash
 cd ~/wemsapp
-git pull origin online-migration
+git pull origin main
 source ~/.virtualenvs/wems-env/bin/activate
 pip install -r requirements.txt
 ```
