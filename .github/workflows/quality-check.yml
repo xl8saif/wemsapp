@@ -26,7 +26,7 @@ jobs:
         run: python -m pip install -r requirements.txt
 
       - name: Compile Python files
-        run: python -m py_compile app.py config.py database/db.py scripts/migrate_sqlite_to_postgres.py
+        run: python -m py_compile app.py config.py database/db.py scripts/migrate_sqlite_to_postgres.py wems_launcher.py
 
       - name: Smoke-test Flask routes
         run: |
@@ -39,11 +39,15 @@ jobs:
           response = client.get("/setup")
           assert response.status_code == 200, f"/setup: {response.status_code}"
 
+          response = client.get("/healthz")
+          assert response.status_code == 200, f"/healthz: {response.status_code}"
+          assert response.json["status"] == "ok", response.json
+
           response = client.get("/login")
           assert response.status_code == 302, f"/login: {response.status_code}"
           assert "/setup" in response.headers.get("Location", ""), "login should redirect to setup when no users exist"
 
-          # Business routes must redirect unauthenticated users to login.
+          # Protected business routes must redirect unauthenticated users to login.
           protected_routes = [
               "/",
               "/clients",
@@ -61,7 +65,38 @@ jobs:
               assert response.status_code == 302, f"{path}: {response.status_code}"
               assert "/login" in response.headers.get("Location", ""), f"{path}: missing login redirect"
 
-          # Unknown routes must return 404.
+          # Create the first admin in the isolated CI database, then verify
+          # authenticated application routes and the real 404 handler.
+          response = client.post(
+              "/setup",
+              data={
+                  "username": "ci-admin",
+                  "full_name": "CI Admin",
+                  "password": "CI-test-password-123!",
+                  "confirm": "CI-test-password-123!",
+              },
+              follow_redirects=False,
+          )
+          assert response.status_code == 302, f"/setup POST: {response.status_code}"
+
+          response = client.post(
+              "/login",
+              data={
+                  "username": "ci-admin",
+                  "password": "CI-test-password-123!",
+              },
+              follow_redirects=False,
+          )
+          assert response.status_code == 302, f"/login POST: {response.status_code}"
+          assert "/" in response.headers.get("Location", ""), "successful login should redirect to dashboard"
+
+          # The same protected routes should be renderable after authentication.
+          for path in ["/", "/clients", "/services", "/jobs", "/invoices", "/payments", "/reports"]:
+              response = client.get(path)
+              assert response.status_code == 200, f"authenticated {path}: {response.status_code}"
+
+          # Unknown routes are checked while authenticated so the login gate
+          # cannot mask Flask's actual 404 response.
           response = client.get("/definitely-not-a-real-wems-route")
           assert response.status_code == 404, response.status_code
 
