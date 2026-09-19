@@ -6,6 +6,7 @@ Application SQL can continue using SQLite-style ? placeholders.
 import os
 import sqlite3
 from config import Config
+from werkzeug.security import generate_password_hash
 
 try:
     import psycopg
@@ -189,6 +190,22 @@ def init_db():
             conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_user_profile_user_id ON user_profile(user_id)")
         if conn.execute("SELECT COUNT(*) FROM services").fetchone()[0] == 0:
             conn.executemany("INSERT INTO services (service_name, category, description, base_price) VALUES (?, ?, ?, ?)", _DEFAULT_SERVICES)
+
+        # Online WEMS is a single-admin system. The first admin is
+        # provisioned from deployment secrets; public registration is disabled.
+        user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        if user_count == 0:
+            admin_username = os.environ.get("WEMS_ADMIN_USERNAME", "").strip().lower()
+            admin_password = os.environ.get("WEMS_ADMIN_PASSWORD", "")
+            admin_name = os.environ.get("WEMS_ADMIN_FULL_NAME", "Waraq Enterprises Administrator").strip()
+            if not admin_username or len(admin_password) < 12:
+                if os.environ.get("WEMS_ENV", "").lower() == "production":
+                    raise RuntimeError("WEMS_ADMIN_USERNAME and WEMS_ADMIN_PASSWORD (minimum 12 characters) are required in production.")
+            else:
+                conn.execute(
+                    "INSERT INTO users (username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, 'admin', 1)",
+                    (admin_username, generate_password_hash(admin_password), admin_name),
+                )
         conn.commit()
     except Exception:
         conn.rollback()
