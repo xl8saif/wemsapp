@@ -42,13 +42,15 @@ The migration tool refuses to write into a non-empty target unless `--replace` i
 
 ## 5. Configure the web application
 
-Set these environment variables in the hosting environment:
+Create a private `.env` file in the application directory on the server (never commit it):
 
 ```text
 WEMS_ENV=production
 SECRET_KEY=<long-random-secret>
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DBNAME
 ```
+
+WEMS loads this file from `wsgi.py` before importing the Flask application. PythonAnywhere documents this pattern for web-app environment variables.
 
 Generate a secret with:
 
@@ -108,7 +110,7 @@ Then reload the web app from the PythonAnywhere Web tab.
 - Do not use the old SQLite `/backup` mechanism for PostgreSQL.
 - Use PostgreSQL provider backups/snapshots and test restoration periodically.
 - Do not expose database credentials, exported dumps, CVs, or uploaded documents through GitHub.
-- The online instance should use HTTPS and production SECRET_KEY settings.
+- The online instance should use HTTPS and production SECRET_KEY settings. Do not put `.env` into GitHub.
 
 ## Architecture
 
