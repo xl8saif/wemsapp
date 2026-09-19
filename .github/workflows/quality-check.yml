@@ -2,7 +2,7 @@ name: WEMS Quality Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, online-migration]
   pull_request:
     branches: [main]
 
