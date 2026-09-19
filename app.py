@@ -1097,16 +1097,60 @@ def users_list():
 
 @app.route('/users/add', methods=['POST'])
 def users_add():
-    if not _require_admin():
+    admin = _require_admin()
+    if not admin:
         return redirect(url_for('login'))
-    flash('نئے صارف اکاؤنٹس بند ہیں۔ New user accounts are disabled for this system.', 'error')
+    username = request.form.get('username', '').strip().lower()
+    full_name = request.form.get('full_name', '').strip()
+    password = request.form.get('password', '')
+    if not re.fullmatch(r'[a-z0-9][a-z0-9._-]{2,31}', username):
+        flash('صارف نام 3 سے 32 حروف کا ہونا چاہیے اور صرف انگریزی حروف، اعداد، ڈاٹ، ہائفن یا انڈر اسکور استعمال کر سکتا ہے۔', 'error')
+        return redirect(url_for('users_list'))
+    if not full_name:
+        flash('پورا نام درج کریں۔ Full name is required.', 'error')
+        return redirect(url_for('users_list'))
+    if len(password) < 12:
+        flash('پاس ورڈ کم از کم 12 حروف کا ہونا چاہیے۔ Password must be at least 12 characters.', 'error')
+        return redirect(url_for('users_list'))
+    conn = get_db_connection()
+    try:
+        existing = conn.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+        if existing:
+            flash('یہ صارف نام پہلے سے موجود ہے۔ Username already exists.', 'error')
+            return redirect(url_for('users_list'))
+        conn.execute(
+            "INSERT INTO users (username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, 'staff', 1)",
+            (username, generate_password_hash(password), full_name),
+        )
+        conn.commit()
+        flash('صارف کامیابی سے شامل ہو گیا۔ User created successfully.', 'success')
+    except DBIntegrityError:
+        conn.rollback()
+        flash('یہ صارف نام پہلے سے موجود ہے۔ Username already exists.', 'error')
+    finally:
+        conn.close()
     return redirect(url_for('users_list'))
 
 @app.route('/users/<int:uid>/toggle', methods=['POST'])
 def users_toggle(uid):
-    if not _require_admin():
+    admin = _require_admin()
+    if not admin:
         return redirect(url_for('login'))
-    flash('صارف اکاؤنٹس کی تعداد ایک ایڈمن تک محدود ہے۔ User accounts are restricted to one administrator.', 'error')
+    conn = get_db_connection()
+    try:
+        target = conn.execute("SELECT id, role, is_active FROM users WHERE id = ?", (uid,)).fetchone()
+        if not target:
+            flash('صارف نہیں ملا۔ User not found.', 'error')
+            return redirect(url_for('users_list'))
+        if target['role'] == 'admin':
+            flash('ایڈمن اکاؤنٹ کو بند نہیں کیا جا سکتا۔ The administrator account cannot be disabled.', 'error')
+            return redirect(url_for('users_list'))
+        new_status = 0 if target['is_active'] else 1
+        conn.execute("UPDATE users SET is_active = ? WHERE id = ?", (new_status, uid))
+        conn.commit()
+        flash('صارف کی حیثیت تبدیل کر دی گئی۔ User status updated.', 'success')
+    finally:
+        conn.close()
     return redirect(url_for('users_list'))
 
 @app.route('/users/<int:uid>/reset-password', methods=['POST'])
