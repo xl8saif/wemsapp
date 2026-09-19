@@ -2,8 +2,18 @@
 {% block title %}صارفین — WEMS{% endblock %}
 {% block page_title %}صارفین{% endblock %}
 {% block content %}
-<div class="card hint-card" style="margin-bottom:18px;">
-    <p class="muted">WEMS آن لائن ورژن صرف ایک ایڈمن اکاؤنٹ استعمال کرتا ہے۔ نئے صارف اکاؤنٹس اور عوامی رجسٹریشن بند ہیں۔</p>
+<div class="card" style="margin-bottom:18px;">
+    <div class="card-header"><h3><i class="fas fa-user-plus"></i> نیا عملہ صارف شامل کریں</h3></div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('users_add') }}" class="form-grid">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group"><label>پورا نام</label><input class="form-input" type="text" name="full_name" required maxlength="120" autocomplete="name"></div>
+            <div class="form-group"><label>صارف نام</label><input class="form-input" type="text" name="username" required minlength="3" maxlength="32" pattern="[a-z0-9][a-z0-9._-]{2,31}" autocomplete="username"></div>
+            <div class="form-group"><label>پاس ورڈ</label><input class="form-input" type="password" name="password" required minlength="12" autocomplete="new-password"></div>
+            <div class="form-group" style="align-self:end;"><button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> صارف شامل کریں</button></div>
+        </form>
+        <p class="muted">صرف ایڈمن صارفین بنا سکتا ہے۔ نئے اکاؤنٹس صرف عملہ (staff) کردار کے ساتھ بنیں گے؛ عوامی رجسٹریشن دستیاب نہیں۔</p>
+    </div>
 </div>
 </div>
 
