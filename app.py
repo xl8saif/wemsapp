@@ -158,6 +158,16 @@ def _require_admin():
         return None
     return user
 
+@app.route('/healthz')
+def healthz():
+    """Lightweight deployment health check; verifies database connectivity."""
+    conn = get_db_connection()
+    try:
+        conn.execute("SELECT 1").fetchone()
+        return jsonify({"status": "ok", "database": get_db_backend()})
+    finally:
+        conn.close()
+
 @app.route('/setup', methods=['GET', 'POST'])
 def setup():
     """First-run registration: creates the first admin account.
