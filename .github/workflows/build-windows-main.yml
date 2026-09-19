@@ -38,8 +38,13 @@ jobs:
                 throw "WEMS.exe exited during startup with code $($p.ExitCode). Launcher log: $((Join-Path (Split-Path $exe) 'wems-launcher.log'))"
               }
               try {
-                $r = Invoke-WebRequest -Uri "http://127.0.0.1:5000/" -UseBasicParsing -TimeoutSec 2
-                if ($r.StatusCode -eq 200) {
+                # /healthz is intentionally unauthenticated and lightweight, so
+                # the packaged build can be tested before any admin account is
+                # provisioned. The root route redirects to login when the test
+                # database has no users, which is expected and must not be
+                # mistaken for a startup failure.
+                $r = Invoke-WebRequest -Uri "http://127.0.0.1:5000/healthz" -UseBasicParsing -TimeoutSec 2
+                if ($r.StatusCode -eq 200 -and $r.Content -match '"status"\s*:\s*"ok"') {
                   $ready = $true
                   break
                 }
