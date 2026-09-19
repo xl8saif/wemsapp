@@ -716,8 +716,8 @@ def invoice_create():
         # for this month, so deleting an invoice never causes a collision.
         prefix = f"WARQ-{datetime.now().strftime('%Y%m')}-"
         row = conn.execute(
-            "SELECT MAX(invoice_number) FROM invoices WHERE invoice_number LIKE ? || '%'",
-            (prefix,)
+            "SELECT MAX(invoice_number) FROM invoices WHERE invoice_number LIKE ?",
+            (prefix + '%',)
         ).fetchone()
         last_seq = 0
         if row and row[0]:
@@ -754,14 +754,15 @@ def invoice_create():
         tax_amount = subtotal * Config.TAX_RATE
         total_amount = subtotal + tax_amount - discount
 
-        conn.execute("""
+        invoice_row = conn.execute("""
             INSERT INTO invoices (invoice_number, client_id, job_id, issue_date, due_date,
                                 subtotal, tax_amount, discount, total_amount, balance_due, notes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING id
         """, (invoice_number, client_id, job_id, issue_date, due_date,
-              subtotal, tax_amount, discount, total_amount, total_amount, request.form.get('notes', '')))
+              subtotal, tax_amount, discount, total_amount, total_amount, request.form.get('notes', ''))).fetchone()
 
-        invoice_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        invoice_id = invoice_row['id']
 
         for item in items:
             conn.execute("""
