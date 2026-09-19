@@ -36,9 +36,12 @@ jobs:
           client = app.app.test_client()
 
           # Public routes must be accessible without authentication.
-          for path in ["/login", "/setup"]:
-              response = client.get(path)
-              assert response.status_code == 200, f"{path}: {response.status_code}"
+          response = client.get("/setup")
+          assert response.status_code == 200, f"/setup: {response.status_code}"
+
+          response = client.get("/login")
+          assert response.status_code == 302, f"/login: {response.status_code}"
+          assert "/setup" in response.headers.get("Location", ""), "login should redirect to setup when no users exist"
 
           # Business routes must redirect unauthenticated users to login.
           protected_routes = [
