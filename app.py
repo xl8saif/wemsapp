@@ -1278,6 +1278,52 @@ def _get_or_create_profile(user_id):
         conn.execute("INSERT INTO user_profile (user_id) VALUES (?)", (user_id,))
         conn.commit()
         row = conn.execute("SELECT * FROM user_profile WHERE user_id = ?", (user_id,)).fetchone()
+
+    # The administrator profile is the developer profile shown on the dashboard.
+    # Seed it from the existing developer card once, without overwriting later
+    # edits made through the profile editor.
+    user = conn.execute("SELECT role FROM users WHERE id = ?", (user_id,)).fetchone()
+    if user and user["role"] == "admin":
+        developer = {
+            "full_name": "سید سیف اللہ جیلانی",
+            "email": "xl8.saif@gmail.com",
+            "summary": (
+                "سینئر مترجم، لوکلائزیشن اسپیشلسٹ اور لینگویج ٹیکنالوجی ماہر۔ "
+                "12+ سالہ پیشہ ورانہ تجربہ، 3,500+ منصوبے؛ قانونی، مذہبی، کارپوریٹ، "
+                "تکنیکی، تعلیمی، میڈیکل، حکومتی اور گیم لوکلائزیشن میں ترجمہ، MTPE، "
+                "LQA، لسانی جانچ اور کثیر لسانی مواد کی تیاری۔ اردو مادری زبان؛ عربی، "
+                "فارسی، انگریزی اور علاقائی زبانوں میں عملی مہارت، بشمول انڈس کوہستانی اور شینا۔"
+            ),
+            "socials": "|".join([
+                "https://www.linkedin.com/in/xl8saif/",
+                "https://www.upwork.com/freelancers/~011ed3711aa3cf98f4?viewMode=1",
+                "https://www.facebook.com/khalid.tasmim",
+                "https://wa.me/923100989830",
+                "https://www.proz.com/profile/3150554",
+                "https://xl8saif.github.io/",
+            ]),
+            "skills": "|".join([
+                "Urdu (Native)", "English", "Arabic", "Persian", "Pashto", "Shina",
+                "Indus Kohistani", "Translation",
+                "MTPE (Machine Translation Post-Editing)", "Localization",
+                "LQA (Language Quality Assurance)", "Linguistic Testing",
+                "Legal", "Religious Texts", "Corporate", "Technical", "Educational",
+                "Medical", "Government", "Game Localization",
+            ]),
+        }
+        updates = {
+            key: value for key, value in developer.items()
+            if not row[key]
+        }
+        if updates:
+            assignments = ", ".join(f"{key}=?" for key in updates)
+            values = list(updates.values()) + [user_id]
+            conn.execute(
+                f"UPDATE user_profile SET {assignments}, updated_at=CURRENT_TIMESTAMP WHERE user_id=?",
+                values,
+            )
+            conn.commit()
+            row = conn.execute("SELECT * FROM user_profile WHERE user_id = ?", (user_id,)).fetchone()
     conn.close()
     return row
 
