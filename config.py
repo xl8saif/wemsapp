@@ -21,6 +21,8 @@ class Config:
     
     # Use DATA_DIR for static images in frozen context (PyInstaller)
     STATIC_IMAGE_DIR = os.path.join(DATA_DIR, 'static', 'images')
+    PROFILE_UPLOAD_DIR = os.path.join(DATA_DIR, 'profile_uploads')
+    PROFILE_CV_DIR = os.path.join(DATA_DIR, 'uploads')
 
     COMPANY_NAME = "Waraq Enterprises"
     COMPANY_ADDRESS = "Waraq KIU Road, Konodas, Gilgit, Pakistan"
