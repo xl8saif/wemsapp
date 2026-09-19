@@ -193,11 +193,13 @@ def init_db():
 
         # Online WEMS is a single-admin system. The first admin is
         # provisioned from deployment secrets; public registration is disabled.
+        admin_username = os.environ.get("WEMS_ADMIN_USERNAME", "").strip().lower()
+        admin_password = os.environ.get("WEMS_ADMIN_PASSWORD", "")
+        admin_name = os.environ.get("WEMS_ADMIN_FULL_NAME", "Waraq Enterprises Administrator").strip()
         user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        admin_count = conn.execute("SELECT COUNT(*) FROM users WHERE role = 'admin'").fetchone()[0]
+
         if user_count == 0:
-            admin_username = os.environ.get("WEMS_ADMIN_USERNAME", "").strip().lower()
-            admin_password = os.environ.get("WEMS_ADMIN_PASSWORD", "")
-            admin_name = os.environ.get("WEMS_ADMIN_FULL_NAME", "Waraq Enterprises Administrator").strip()
             if not admin_username or len(admin_password) < 12:
                 if os.environ.get("WEMS_ENV", "").lower() == "production":
                     raise RuntimeError("WEMS_ADMIN_USERNAME and WEMS_ADMIN_PASSWORD (minimum 12 characters) are required in production.")
@@ -206,6 +208,15 @@ def init_db():
                     "INSERT INTO users (username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, 'admin', 1)",
                     (admin_username, generate_password_hash(admin_password), admin_name),
                 )
+        elif os.environ.get("WEMS_ENV", "").lower() == "production":
+            if admin_count != 1:
+                raise RuntimeError("Production WEMS requires exactly one administrator account.")
+            if not admin_username or len(admin_password) < 12:
+                raise RuntimeError("WEMS_ADMIN_USERNAME and WEMS_ADMIN_PASSWORD (minimum 12 characters) are required in production.")
+            conn.execute(
+                "UPDATE users SET username = ?, password_hash = ?, full_name = ?, is_active = 1 WHERE role = 'admin'",
+                (admin_username, generate_password_hash(admin_password), admin_name),
+            )
         conn.commit()
     except Exception:
         conn.rollback()
@@ -257,6 +268,7 @@ def get_outstanding_clients():
         return conn.execute("""SELECT c.id, c.name, c.phone, COALESCE(SUM(i.balance_due), 0) as total_due,
             COUNT(i.id) as invoice_count FROM clients c JOIN invoices i ON c.id = i.client_id
             WHERE i.balance_due > 0 GROUP BY c.id ORDER BY total_due DESC LIMIT 10""").fetchall()
+
     finally:
         conn.close()
 
