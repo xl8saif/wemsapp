@@ -217,6 +217,36 @@ def init_db():
                 "UPDATE users SET username = ?, password_hash = ?, full_name = ?, is_active = 1 WHERE role = 'admin'",
                 (admin_username, generate_password_hash(admin_password), admin_name),
             )
+        # Controlled staff accounts are provisioned from Railway secrets.
+        # Public registration and in-app account creation remain disabled.
+        staff_json = os.environ.get("WEMS_STAFF_USERS", "").strip()
+        if staff_json:
+            import json
+            staff_users = json.loads(staff_json)
+            if not isinstance(staff_users, list):
+                raise RuntimeError("WEMS_STAFF_USERS must be a JSON list.")
+            for item in staff_users:
+                if not isinstance(item, dict):
+                    raise RuntimeError("Each WEMS_STAFF_USERS entry must be an object.")
+                username = str(item.get("username", "")).strip().lower()
+                password = str(item.get("password", ""))
+                full_name = str(item.get("full_name", "")).strip()
+                if not username or not full_name or len(password) < 12:
+                    raise RuntimeError("Each staff account requires username, full_name, and a password of at least 12 characters.")
+                existing = conn.execute("SELECT id, role FROM users WHERE username = ?", (username,)).fetchone()
+                if existing:
+                    if existing["role"] == "admin":
+                        raise RuntimeError(f"Staff username conflicts with administrator: {username}")
+                    conn.execute(
+                        "UPDATE users SET password_hash = ?, full_name = ?, role = 'staff', is_active = 1 WHERE id = ?",
+                        (generate_password_hash(password), full_name, existing["id"]),
+                    )
+                else:
+                    conn.execute(
+                        "INSERT INTO users (username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, 'staff', 1)",
+                        (username, generate_password_hash(password), full_name),
+                    )
+
         conn.commit()
     except Exception:
         conn.rollback()
