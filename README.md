@@ -1,6 +1,31 @@
 # Waraq Enterprise Management System (WEMS)
 
-WEMS is an offline-first desktop business management system for Waraq Enterprises, Gilgit.
+WEMS is a business management system for Waraq Enterprises, Gilgit. The same codebase now supports both the existing offline Windows/SQLite mode and an online multi-user deployment backed by PostgreSQL.
+
+## Deployment modes
+
+- **Offline desktop:** no DATABASE_URL; WEMS uses local SQLite at database/waraq.db.
+- **Online web:** set DATABASE_URL to a PostgreSQL connection URL; WEMS uses PostgreSQL and supports concurrent web users.
+- The Windows build remains SQLite-based unless DATABASE_URL is deliberately configured.
+- Do not expose the SQLite database directly to the internet.
+
+## Online architecture
+
+Browser → Flask/WSGI → PostgreSQL
+
+Generated files such as invoices, exports, profile uploads and CVs remain on the application server. Database backups should be handled by the PostgreSQL provider rather than copying a live PostgreSQL data file.
+
+## Migrating existing office data
+
+Do not upload waraq.db to a public repository or replace the production database blindly. First create a verified backup, provision PostgreSQL, then run:
+
+```bash
+python scripts/migrate_sqlite_to_postgres.py --sqlite database/waraq.db --database-url "postgresql://USER:PASSWORD@HOST:5432/DBNAME"
+```
+
+The migration refuses a non-empty destination unless `--replace` is explicitly supplied. Verify row counts and sample invoices/users after migration before switching the live site to the database URL.
+
+
 
 ## Current capabilities
 
