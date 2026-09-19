@@ -14,7 +14,7 @@
         <div class="showcase-top">
             <div class="showcase-photo">
                 {% if profile['photo'] %}
-                <img src="{{ url_for('static', filename='images/' ~ profile['photo']) }}" alt="{{ profile['full_name'] }}">
+                <img src="{{ url_for('profile_photo', filename=profile['photo']) }}" alt="{{ profile['full_name'] }}">
                 {% else %}
                 <div class="photo-placeholder"><i class="fas fa-user"></i></div>
                 {% endif %}
