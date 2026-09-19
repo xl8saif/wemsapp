@@ -36,7 +36,9 @@ def main():
     try:
         init_db()
         dst = get_db_connection()
-        counts = {table: dst.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] for table in TABLES}
+        # init_db() seeds the service catalog. That is not user/business data,
+        # so it must not make a newly provisioned target look non-empty.
+        counts = {table: dst.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] for table in TABLES if table != "services"}
         if any(counts.values()) and not args.replace:
             raise SystemExit("Destination is not empty. Use --replace only after verifying the target database.")
 
