@@ -185,39 +185,8 @@ def healthz():
 
 @app.route('/setup', methods=['GET', 'POST'])
 def setup():
-    """First-run registration: creates the first admin account.
-    Blocked once any user exists."""
-    if _users_count() > 0:
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip().lower()
-        full_name = request.form.get('full_name', '').strip()
-        password = request.form.get('password', '')
-        confirm = request.form.get('confirm', '')
-        if not username or not full_name:
-            flash('Client name is required.', 'error')
-            return redirect(url_for('setup'))
-        if len(password) < 6:
-            flash('پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے۔ Password must be at least 6 characters.', 'error')
-            return redirect(url_for('setup'))
-        if password != confirm:
-            flash('پاس ورڈز مشابہ نہیں ہیں۔ Passwords do not match.', 'error')
-            return redirect(url_for('setup'))
-        conn = get_db_connection()
-        try:
-            conn.execute(
-                "INSERT INTO users (username, password_hash, full_name, role) VALUES (?, ?, ?, 'admin')",
-                (username, generate_password_hash(password), full_name),
-            )
-            conn.commit()
-        except DBIntegrityError:
-            conn.close()
-            flash('یہ صارف نام پہلے سے موجود ہے۔ Username already exists.', 'error')
-            return redirect(url_for('setup'))
-        conn.close()
-        flash('ایڈمین اکاؤنٹ بنا دیا گیا۔ اب داخل ہوں۔ Admin account created. Please sign in.', 'success')
-        return redirect(url_for('login'))
-    return render_template('setup.html')
+    """Public account registration is permanently disabled for online WEMS."""
+    return redirect(url_for('login'))
 
 # --- Login brute-force protection (per-username lockout) ---
 # Keyed by username rather than IP: hosts like PythonAnywhere sit behind a
@@ -1129,43 +1098,15 @@ def users_list():
 @app.route('/users/add', methods=['POST'])
 def users_add():
     if not _require_admin():
-        flash('Invoice not found.', 'error')
-        return redirect(url_for('dashboard'))
-    username = request.form.get('username', '').strip().lower()
-    full_name = request.form.get('full_name', '').strip()
-    role = request.form.get('role', 'staff').strip()
-    password = request.form.get('password', '')
-    if not username or not full_name or len(password) < 6:
-        flash('پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے۔ Password must be at least 6 characters.', 'error')
-        return redirect(url_for('users_list'))
-    if role not in ('admin', 'staff'):
-        role = 'staff'
-    conn = get_db_connection()
-    try:
-        conn.execute(
-            "INSERT INTO users (username, password_hash, full_name, role) VALUES (?, ?, ?, ?)",
-            (username, generate_password_hash(password), full_name, role),
-        )
-        conn.commit()
-    except sqlite3.IntegrityError:
-        conn.close()
-        flash('یہ صارف نام پہلے سے موجود ہے۔ Username already exists.', 'error')
-        return redirect(url_for('users_list'))
-    conn.close()
-    flash('Service added successfully!', 'success')
+        return redirect(url_for('login'))
+    flash('نئے صارف اکاؤنٹس بند ہیں۔ New user accounts are disabled for this system.', 'error')
     return redirect(url_for('users_list'))
 
 @app.route('/users/<int:uid>/toggle', methods=['POST'])
 def users_toggle(uid):
-    admin = _require_admin()
-    if not admin or admin['id'] == uid:
-        flash('Invoice not found.', 'error')
-        return redirect(url_for('users_list'))
-    conn = get_db_connection()
-    conn.execute("UPDATE users SET is_active = 1 - is_active WHERE id = ?", (uid,))
-    conn.commit()
-    conn.close()
-    flash('Service updated!', 'success')
+    if not _require_admin():
+        return redirect(url_for('login'))
+    flash('صارف اکاؤنٹس کی تعداد ایک ایڈمن تک محدود ہے۔ User accounts are restricted to one administrator.', 'error')
     return redirect(url_for('users_list'))
 
 @app.route('/users/<int:uid>/reset-password', methods=['POST'])
@@ -1187,21 +1128,9 @@ def users_reset_password(uid):
 
 @app.route('/users/<int:uid>/delete', methods=['POST'])
 def users_delete(uid):
-    admin = _require_admin()
-    if not admin or admin['id'] == uid:
-        flash('Invoice not found.', 'error')
-        return redirect(url_for('users_list'))
-    conn = get_db_connection()
-    admins_left = conn.execute("SELECT COUNT(*) FROM users WHERE role='admin' AND is_active=1 AND id != ?", (uid,)).fetchone()[0]
-    if admins_left == 0:
-        conn.close()
-        flash('Invoice not found.', 'error')
-        return redirect(url_for('users_list'))
-    conn.execute("DELETE FROM user_profile WHERE user_id = ?", (uid,))
-    conn.execute("DELETE FROM users WHERE id = ?", (uid,))
-    conn.commit()
-    conn.close()
-    flash('Service deleted!', 'success')
+    if not _require_admin():
+        return redirect(url_for('login'))
+    flash('صارف اکاؤنٹ حذف کرنا بند ہے۔ The single administrator account cannot be deleted.', 'error')
     return redirect(url_for('users_list'))
 
 # ==================== LINKEDIN POSTS (developer card) ====================
