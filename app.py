@@ -4,6 +4,7 @@ import re
 import shutil
 import glob as globmod
 import hmac
+import secrets
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from functools import wraps
@@ -121,6 +122,19 @@ init_db()
 auto_backup()
 
 # ==================== LOGIN GATE ====================
+
+@app.before_request
+def csrf_protect():
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_urlsafe(32)
+    if request.method in {'POST', 'PUT', 'PATCH', 'DELETE'} and request.endpoint not in {'login', 'setup'}:
+        supplied = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
+        if not supplied or not hmac.compare_digest(supplied, session['csrf_token']):
+            return jsonify({'error': 'CSRF validation failed'}), 400
+
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': session.get('csrf_token', '')}
 
 @app.before_request
 def require_login():
