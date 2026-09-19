@@ -94,7 +94,7 @@
         <div class="card-body">
             {% if recent_jobs %}
             <table class="data-table compact"><thead><tr><th>کام</th><th>کلائنٹ</th><th>زمرہ</th><th>حیثیت</th><th>تاریخ</th></tr></thead>
-            <tbody>{% for job in recent_jobs %}<tr><td><a href="{{ url_for('job_detail', id=job.id) }}">{{ job.job_title }}</a></td><td>{{ job.client_name }}</td><td><span class="badge">{{ category_labels.get(job.category, job.category) }}</span></td><td><span class="status-badge status-{{ job.status|lower|replace(' ', '-') }}">{{ status_labels.get(job.status, job.status) }}</span></td><td>{{ job.created_at[:10] }}</td></tr>{% endfor %}</tbody></table>
+            <tbody>{% for job in recent_jobs %}<tr><td><a href="{{ url_for('job_detail', id=job.id) }}">{{ job.job_title }}</a></td><td>{{ job.client_name }}</td><td><span class="badge">{{ category_labels.get(job.category, job.category) }}</span></td><td><span class="status-badge status-{{ job.status|lower|replace(' ', '-') }}">{{ status_labels.get(job.status, job.status) }}</span></td><td>{{ job.created_at.strftime('%Y-%m-%d') if job.created_at is not string else job.created_at[:10] }}</td></tr>{% endfor %}</tbody></table>
             {% else %}<p class="empty-state">ابھی کوئی کام موجود نہیں۔</p>{% endif %}
         </div>
     </div>
