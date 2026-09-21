@@ -173,6 +173,8 @@ _SCHEMA = [
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )""",
     """CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT)""",
+    """CREATE TABLE IF NOT EXISTS visitor_stats (id INTEGER PRIMARY KEY, total_visitors INTEGER NOT NULL DEFAULT 0, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""",
+
 ]
 
 def init_db():
@@ -188,6 +190,11 @@ def init_db():
         else:
             conn.execute("ALTER TABLE user_profile ADD COLUMN IF NOT EXISTS user_id INTEGER")
             conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_user_profile_user_id ON user_profile(user_id)")
+        if conn.backend == "postgres":
+            conn.execute("INSERT INTO visitor_stats (id, total_visitors) VALUES (1, 0) ON CONFLICT (id) DO NOTHING")
+        else:
+            conn.execute("INSERT OR IGNORE INTO visitor_stats (id, total_visitors) VALUES (1, 0)")
+
         if conn.execute("SELECT COUNT(*) FROM services").fetchone()[0] == 0:
             conn.executemany("INSERT INTO services (service_name, category, description, base_price) VALUES (?, ?, ?, ?)", _DEFAULT_SERVICES)
 
@@ -315,5 +322,24 @@ def set_setting(key, value):
     try:
         conn.execute("INSERT INTO app_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (key, value))
         conn.commit()
+    finally:
+        conn.close()
+
+
+def increment_visitor_count():
+    conn = get_db_connection()
+    try:
+        conn.execute("UPDATE visitor_stats SET total_visitors = total_visitors + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1")
+        row = conn.execute("SELECT total_visitors FROM visitor_stats WHERE id = 1").fetchone()
+        conn.commit()
+        return row["total_visitors"] if row else 0
+    finally:
+        conn.close()
+
+def get_visitor_count():
+    conn = get_db_connection()
+    try:
+        row = conn.execute("SELECT total_visitors FROM visitor_stats WHERE id = 1").fetchone()
+        return row["total_visitors"] if row else 0
     finally:
         conn.close()
