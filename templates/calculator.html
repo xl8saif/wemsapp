@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}اردو کیلکولیٹر — WEMS{% endblock %}
+{% block page_title %}اردو کیلکولیٹر{% endblock %}
+{% block extra_css %}
+<style>
+.calculator-page{display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:20px;align-items:start}
+.calculator-card{max-width:520px;margin:0 auto;width:100%}
+.calculator-display{width:100%;min-height:88px;padding:16px 18px;border:1px solid var(--glass-border);border-radius:12px;background:rgba(5,11,24,.78);color:#fff;text-align:left;font:600 30px/1.3 "Segoe UI",Tahoma,Arial,sans-serif;direction:ltr}
+.calculator-expression{min-height:24px;color:#b9c2d4;font-size:13px;margin-bottom:6px;text-align:left;direction:ltr}
+.calculator-keys{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
+.calculator-key{min-height:58px;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.07);color:var(--primary);font-size:19px;font-weight:600;cursor:pointer}
+.calculator-key:hover{background:rgba(255,255,255,.13)}
+.calculator-key.operator{background:rgba(47,107,255,.18);color:#cfe0ff}
+.calculator-key.equal{background:linear-gradient(135deg,#2F6BFF,#1E4FC4);color:#fff}
+.calculator-key.clear{background:rgba(226,92,74,.18);color:#ffd4cd}
+.calculator-key.wide{grid-column:span 2}
+.calculator-help h3{margin-bottom:10px}.calculator-help p{color:#c3ccdc;margin-bottom:10px}.calculator-help ul{padding-right:20px;color:#b9c2d4}.calculator-help li{margin-bottom:7px}
+@media(max-width:850px){.calculator-page{grid-template-columns:1fr}.calculator-card{max-width:100%}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="calculator-page">
+<section class="card calculator-card" aria-label="اردو کیلکولیٹر">
+<div id="calcExpression" class="calculator-expression"></div>
+<div id="calcDisplay" class="calculator-display" role="status" aria-live="polite">0</div>
+<div class="calculator-keys">
+<button class="calculator-key clear" data-action="clear">AC</button><button class="calculator-key" data-action="backspace">⌫</button><button class="calculator-key operator" data-value="%">%</button><button class="calculator-key operator" data-value="/">÷</button>
+<button class="calculator-key" data-value="7">۷</button><button class="calculator-key" data-value="8">۸</button><button class="calculator-key" data-value="9">۹</button><button class="calculator-key operator" data-value="*">×</button>
+<button class="calculator-key" data-value="4">۴</button><button class="calculator-key" data-value="5">۵</button><button class="calculator-key" data-value="6">۶</button><button class="calculator-key operator" data-value="-">−</button>
+<button class="calculator-key" data-value="1">۱</button><button class="calculator-key" data-value="2">۲</button><button class="calculator-key" data-value="3">۳</button><button class="calculator-key operator" data-value="+">+</button>
+<button class="calculator-key wide" data-value="0">۰</button><button class="calculator-key" data-value=".">.</button><button class="calculator-key equal" data-action="equals">=</button>
+</div></section>
+<section class="card calculator-help">
+<h3>اردو کیلکولیٹر</h3>
+<p>روزمرہ حساب کے لیے سادہ، تیز اور موبائل فرینڈلی کیلکولیٹر۔ اعداد اردو ہندسوں میں دکھائے جاتے ہیں۔</p>
+<ul><li>جمع، تفریق، ضرب، تقسیم اور فیصد</li><li>کی بورڈ سے بھی اعداد اور بنیادی آپریٹرز استعمال کیے جا سکتے ہیں</li><li>AC سے حساب صاف کریں اور ⌫ سے آخری ہندسہ حذف کریں</li></ul>
+</section></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function(){
+const d=document.getElementById('calcDisplay'),e=document.getElementById('calcExpression');let cur='0',prev=null,op=null,reset=false;
+const urdu=n=>String(n).replace(/[0-9]/g,x=>'۰۱۲۳۴۵۶۷۸۹'[x]);
+function render(){d.textContent=urdu(cur);e.textContent=prev!==null?urdu(prev)+' '+op:''}
+function input(v){if(reset){cur=v==='.'?'0.':v;reset=false}else if(v==='.'&&cur.includes('.'))return;else cur=cur==='0'&&v!=='.'?v:cur+v;render()}
+function calc(){if(prev===null||op===null)return;const a=Number(prev),b=Number(cur);let r=op==='+'?a+b:op==='-'?a-b:op==='*'?a*b:op==='/'?(b===0?NaN:a/b):a*(b/100);if(!Number.isFinite(r)){cur='Error'}else cur=String(Number(r.toPrecision(12)));prev=null;op=null;reset=true;render()}
+document.querySelectorAll('.calculator-key').forEach(b=>b.onclick=()=>{const v=b.dataset.value,a=b.dataset.action;if(a==='clear'){cur='0';prev=null;op=null;reset=false;render()}else if(a==='backspace'){cur=cur==='Error'||cur.length<2?'0':cur.slice(0,-1);render()}else if(a==='equals')calc();else if(['+','-','*','/','%'].includes(v)){if(prev!==null)calc();prev=cur;op=v;reset=true;render()}else input(v)});
+document.onkeydown=x=>{if(/[0-9.]/.test(x.key))input(x.key);else if(['+','-','*','/','%'].includes(x.key)){document.querySelector('[data-value="'+x.key+'"]').click()}else if(x.key==='Enter'||x.key==='='){x.preventDefault();calc()}else if(x.key==='Escape')document.querySelector('[data-action="clear"]').click();else if(x.key==='Backspace')document.querySelector('[data-action="backspace"]').click()};render();
+})();
+</script>
+{% endblock %}
