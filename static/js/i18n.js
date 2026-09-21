@@ -40,7 +40,7 @@
     'ورق انٹرپرائزز، گلگت': 'Waraq Enterprises, Gilgit',
     'ورق انٹرپرائزز، گلگت — WEMS v1.0': 'Waraq Enterprises, Gilgit — WEMS v1.0',
     'سید سیف اللہ جیلانی': 'Saif Ullah Jailani',
-    'ڈیش بورڈ': 'Dashboard', 'کلائنٹس': 'Clients', 'کلائنٹ': 'Client',
+    'اردو کیلکولیٹر': 'Urdu Calculator', 'سائٹ وزٹرز:': 'Site visitors:', 'روزمرہ حساب کے لیے سادہ، تیز اور موبائل فرینڈلی کیلکولیٹر۔ اعداد اردو ہندسوں میں دکھائے جاتے ہیں۔': 'A simple, fast and mobile-friendly calculator for everyday calculations. Numbers are displayed in Urdu digits.', 'جمع، تفریق، ضرب، تقسیم اور فیصد': 'Addition, subtraction, multiplication and percentage', 'کی بورڈ سے بھی اعداد اور بنیادی آپریٹرز استعمال کیے جا سکتے ہیں': 'Numbers and basic operators can also be entered from the keyboard', 'AC سے حساب صاف کریں اور ⌫ سے آخری ہندسہ حذف کریں': 'Use AC to clear the calculation and ⌫ to delete the last digit', 'ڈیش بورڈ': 'Dashboard', 'کلائنٹس': 'Clients', 'کلائنٹ': 'Client',
     'کلائنٹ پروفائل': 'Client Profile', 'کلائنٹ کی معلومات': 'Client Information',
     'کلائنٹ کا نام': 'Client Name', 'کلائنٹ کا نام *': 'Client Name *', 'کلائنٹ کی قسم': 'Client Type',
     'کام اور خدمات': 'Jobs & Services', 'کام': 'Jobs', 'کام کی تفصیلات': 'Job Details', 'کام کی معلومات': 'Job Information',
