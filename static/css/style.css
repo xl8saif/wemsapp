@@ -404,3 +404,7 @@ html[dir="ltr"] .user-chip { padding:3px 4px 3px 12px; }
     .social-btn { font-size:12px; padding:4px 10px 4px 5px; }
     .social-btn .social-icon { width:23px; height:23px; font-size:12px; }
 }
+
+
+.visitor-counter{display:inline-flex;align-items:center;justify-content:center;gap:7px;color:rgba(233,240,246,.82);font-size:12px;margin-top:3px}
+.visitor-counter strong{font-variant-numeric:tabular-nums}
