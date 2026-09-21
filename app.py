@@ -28,6 +28,8 @@ from database.db import (
     get_outstanding_clients,
     get_setting,
     set_setting,
+    increment_visitor_count,
+    get_visitor_count,
     DBIntegrityError,
     get_db_backend,
 )
@@ -135,7 +137,17 @@ def csrf_protect():
 
 @app.context_processor
 def inject_csrf_token():
-    return {'csrf_token': session.get('csrf_token', '')}
+    return {
+        'csrf_token': session.get('csrf_token', ''),
+        'visitor_count': get_visitor_count(),
+    }
+
+@app.before_request
+def count_visitor():
+    # Count one visitor per browser session, not every request.
+    if request.endpoint not in {'static', 'healthz'} and not session.get('visitor_counted'):
+        increment_visitor_count()
+        session['visitor_counted'] = True
 
 @app.before_request
 def require_login():
@@ -347,6 +359,13 @@ def dashboard():
         collected=collected,
         li_posts=li_posts,
     )
+
+
+# ==================== URDU CALCULATOR ====================
+
+@app.route("/calculator")
+def calculator():
+    return render_template("calculator.html")
 
 
 # ==================== CLIENTS ====================
